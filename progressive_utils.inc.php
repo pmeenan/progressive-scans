@@ -1,5 +1,5 @@
 <?php
-function GetImageScans($src) {
+function GetImageScans($src, &$info) {
     $scans = null;
     $hash = sha1($src);
     $dir = './tmp/' . $hash[0];
@@ -17,6 +17,7 @@ function GetImageScans($src) {
         }
     }
     if (is_file($progressive)) {
+        $info = getimagesize($progressive);
         $file = fopen($progressive, 'rb');
         if ($file) {
             $bytes = fread($file, filesize($progressive));
