@@ -26,6 +26,7 @@ $divWidth = $width * 2;
 </style>
 </head>
 <body>
+<a href="https://github.com/pmeenan/progressive-scans"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>
 <?php
 if (isset($scans) && is_array($scans)) {
     $scan_count = count($scans) - 1;
