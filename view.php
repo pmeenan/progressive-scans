@@ -17,7 +17,7 @@ if (isset($scans) && is_array($scans)) {
         for ($i = 0; $i < $count; $i++)
             $out .= $scans[$i];
         echo "$count scans - " . strlen($out) . ' bytes<br>';
-        echo '<img src="data::image/jpeg;base64,';
+        echo '<img src="data:image/jpeg;base64,';
         echo base64_encode($out);
         echo '"><br><br>';
         $count--;
