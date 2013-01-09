@@ -21,7 +21,7 @@ $divWidth = $width * 2;
     #slider {width:400px;}
 <?php    
     echo "#interactive {width:{$divWidth}px;}\n";
-    echo "img {width:{$width}px;height:{$height}px;}\n";
+    echo "img.jpeg {width:{$width}px;height:{$height}px;}\n";
 ?>
 </style>
 </head>
@@ -74,7 +74,7 @@ function DisplayImage(&$scans, $count) {
         $out .= $scans[$i];
     $bytes = strlen($out);
     echo "$count scans - $bytes bytes<br>";
-    echo '<img src="data:image/jpeg;base64,';
+    echo '<img class="jpeg" src="data:image/jpeg;base64,';
     echo base64_encode($out);
     echo '">';
     if (is_file($baseline)) {
@@ -82,7 +82,7 @@ function DisplayImage(&$scans, $count) {
             $bytes = filesize($baseline);
         $file = fopen($baseline, 'rb');
         if ($file) {
-            echo '<img src="data:image/jpeg;base64,';
+            echo '<img class="jpeg" src="data:image/jpeg;base64,';
             echo base64_encode(fread($file, $bytes));
             echo '">';
             fclose($file);
@@ -94,6 +94,19 @@ function DisplayImage(&$scans, $count) {
 ?>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
+<script>
+/*
+ * jQuery UI Touch Punch 0.2.2
+ *
+ * Copyright 2011, Dave Furfero
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ *
+ * Depends:
+ *  jquery.ui.widget.js
+ *  jquery.ui.mouse.js
+ */
+(function(b){b.support.touch="ontouchend" in document;if(!b.support.touch){return;}var c=b.ui.mouse.prototype,e=c._mouseInit,a;function d(g,h){if(g.originalEvent.touches.length>1){return;}g.preventDefault();var i=g.originalEvent.changedTouches[0],f=document.createEvent("MouseEvents");f.initMouseEvent(h,true,true,window,1,i.screenX,i.screenY,i.clientX,i.clientY,false,false,false,false,0,null);g.target.dispatchEvent(f);}c._touchStart=function(g){var f=this;if(a||!f._mouseCapture(g.originalEvent.changedTouches[0])){return;}a=true;f._touchMoved=false;d(g,"mouseover");d(g,"mousemove");d(g,"mousedown");};c._touchMove=function(f){if(!a){return;}this._touchMoved=true;d(f,"mousemove");};c._touchEnd=function(f){if(!a){return;}d(f,"mouseup");d(f,"mouseout");if(!this._touchMoved){d(f,"click");}a=false;};c._mouseInit=function(){var f=this;f.element.bind("touchstart",b.proxy(f,"_touchStart")).bind("touchmove",b.proxy(f,"_touchMove")).bind("touchend",b.proxy(f,"_touchEnd"));e.call(f);};})(jQuery);
+</script>
 <script>
 <?php
 echo "\$(\"#slider\").slider({ min: 1, max: $scan_count, step: 1, value: $mid });\n";
