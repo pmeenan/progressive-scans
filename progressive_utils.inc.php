@@ -8,6 +8,7 @@ function GetImageScans($src, &$info) {
     $dir = realpath($dir);
     $original = "$dir/$hash.original.jpg";
     $progressive = "$dir/$hash.jpg";
+    $baseline = "$dir/$hash-baseline.jpg";
     if (!is_file($progressive)) {
         file_put_contents($original, file_get_contents($src));
         if (is_file($original)) {
@@ -17,7 +18,14 @@ function GetImageScans($src, &$info) {
         }
     }
     if (is_file($progressive)) {
-        $info = getimagesize($progressive);
+        if (!is_file($baseline)) {
+            $cmd = 'jpegtran -optimize -copy none ' . escapeshellarg($progressive) . ' > ' . escapeshellarg($baseline);
+            exec($cmd, $result);
+        }
+        $size = getimagesize($progressive);
+        $info['width'] = $size[0];
+        $info['height'] = $size[1];
+        $info['baseline'] = $baseline;
         $file = fopen($progressive, 'rb');
         if ($file) {
             $bytes = fread($file, filesize($progressive));

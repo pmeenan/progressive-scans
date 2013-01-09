@@ -2,8 +2,10 @@
 require_once('./progressive_utils.inc.php');
 $url = htmlspecialchars($_REQUEST['img']);
 $scans = GetImageScans($url, $info);
-$width = $info[0];
-$height = $info[1];
+$width = $info['width'];
+$height = $info['height'];
+$baseline = $info['baseline'];
+$divWidth = $width * 2;
 ?>
 <!DOCTYPE html>
 <html>
@@ -18,7 +20,7 @@ $height = $info[1];
     div.cleared {float:none; clear:both;}
     #slider {width:400px;}
 <?php    
-    echo "#interactive {width:{$width}px;}\n";
+    echo "#interactive {width:{$divWidth}px;}\n";
     echo "img {width:{$width}px;height:{$height}px;}\n";
 ?>
 </style>
@@ -29,9 +31,13 @@ if (isset($scans) && is_array($scans)) {
     $scan_count = count($scans) - 1;
     $mid = (int)($scan_count / 2);
     echo "<h1>Progressive Jpeg Demonstration</h1>";
-    echo "Original Image: <a href=\"$url\">$url</a>";
+    echo "Original Image: <a href=\"$url\">$url</a><br>";
+    echo "<a href=\"index.html\">New Comparison</a>";
     echo "<h2>Interactive View:</h2>";
-    echo "<p>Move the slider to see the progression of the scans.<br>Hover the mouse over the image to see the original image for a quick A/B comparison.</p>";
+    echo "<p>The image on the left (or above) is the progressive image and the one on the right is top-down baseline.<br>";
+    echo "Move the slider to see the progression of the scans.<br>";
+    echo "Hover the mouse over the image to see the original image for a quick A/B comparison.</p>";
+    echo "<button id=\"animate\" onclick=\"ToggleAnimation();\">Start Animation</button><br>";
     echo "<div id=\"interactive\">";
     echo "<div id=\"slider\"></div>";
     $count = count($scans) - 1;
@@ -60,13 +66,28 @@ if (isset($scans) && is_array($scans)) {
 }
 
 function DisplayImage(&$scans, $count) {
+    global $width;
+    global $baseline;
     $out = '';
     for ($i = 0; $i < $count; $i++)
         $out .= $scans[$i];
-    echo "$count scans - " . strlen($out) . ' bytes<br>';
+    $bytes = strlen($out);
+    echo "$count scans - $bytes bytes<br>";
     echo '<img src="data:image/jpeg;base64,';
     echo base64_encode($out);
-    echo '"><br><br>';
+    echo '">';
+    if (is_file($baseline)) {
+        if ($count >= count($scans) - 1)
+            $bytes = filesize($baseline);
+        $file = fopen($baseline, 'rb');
+        if ($file) {
+            echo '<img src="data:image/jpeg;base64,';
+            echo base64_encode(fread($file, $bytes));
+            echo '">';
+            fclose($file);
+        }
+    }
+    echo '<br><br>';
 }
 
 ?>
@@ -78,31 +99,56 @@ echo "\$(\"#slider\").slider({ min: 1, max: $scan_count, step: 1, value: $mid })
 echo "var count = $scan_count;\n";
 echo "var selected = $mid;\n";
 ?>
+var timer;
 $("#slider").on("slide", function(event, ui) {
     selected = ui.value;
-    $('#interactive-' + selected).show();
-    for (i = 1; i <= count; i++) {
-        if (i != selected) {
-            $('#interactive-' + i).hide();
-        }
-    }
+    ShowSelected();
 });
 $("#interactive-images").hover(
-  function () {
-    $('#interactive-' + count).show();
-    for (i = 1; i < count; i++) {
-            $('#interactive-' + i).hide();
+    function () {
+        if (timer == undefined) {
+            $('#interactive-' + count).show();
+            for (i = 1; i < count; i++) {
+                $('#interactive-' + i).hide();
+            }
         }
-  }, 
-  function () {
+    }, 
+    function () { 
+        ShowSelected();
+    }
+);
+function ShowSelected() {
     $('#interactive-' + selected).show();
     for (i = 1; i <= count; i++) {
         if (i != selected) {
             $('#interactive-' + i).hide();
         }
     }
-  }
-);
+};
+function IncrementProgress() {
+    var delay = 100;
+    selected++;
+    if (selected == count)
+        delay = 1000;
+    if (selected > count)
+        selected = 1;
+    $("#slider").slider( "value", selected );
+    ShowSelected();
+    timer = setTimeout('IncrementProgress()', delay);
+};
+function ToggleAnimation() {
+    if (timer == undefined) {
+        $("#animate").text('Stop Animation');
+        selected = 1;
+        $("#slider").slider( "value", selected );
+        ShowSelected();
+        timer = setTimeout('IncrementProgress()', 100);
+    } else {
+        $("#animate").text('Start Animation');
+        clearTimeout(timer);
+        timer = undefined;
+    }
+};
 </script>
 </body>
 </html>
