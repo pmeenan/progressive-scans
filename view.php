@@ -41,25 +41,21 @@ if (isset($scans) && is_array($scans)) {
     echo "<button id=\"animate\" onclick=\"ToggleAnimation();\">Start Animation</button><br>";
     echo "<div id=\"interactive\">";
     echo "<div id=\"slider\"></div>";
-    $count = count($scans) - 1;
     echo "<div id=\"interactive-images\">";
-    while ($count > 0) {
+    for ($count = 1; $count <= $scan_count; $count++) {
         $visibility = 'hidden';
         if ($count == $mid)
             $visibility = 'visible';
         echo "<div id=\"interactive-$count\" class=\"interactive $visibility\">\n";
         DisplayImage($scans, $count);
-        $count--;
         echo "</div>\n";
     }
     echo "<div class=\"cleared\"></div></div>";
     echo "</div>";
     echo "<h2>Individual Images:</h2>";
-    $count = count($scans) - 1;
-    while ($count > 0) {
+    for ($count = 1; $count <= $scan_count; $count++) {
         echo "<div id=\"scans-$count\">\n";
         DisplayImage($scans, $count);
-        $count--;
         echo "</div>\n";
     }
 } else {
