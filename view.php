@@ -33,7 +33,7 @@ if (isset($scans) && is_array($scans)) {
     $mid = (int)($scan_count / 2);
     echo "<h1>Progressive Jpeg Demonstration</h1>";
     echo "Original Image: <a href=\"$url\">$url</a><br>";
-    echo "<a href=\"index.html\">New Comparison</a>";
+    echo "<a href=\"index.html\">New Comparison</a> - You can view any web-accessible jpeg image as a progressive comparison.";
     echo "<h2>Interactive View:</h2>";
     echo "<p>The image on the left (or above) is the progressive image and the one on the right is top-down baseline.<br>";
     echo "Move the slider to see the progression of the scans.<br>";
