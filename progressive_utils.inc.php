@@ -9,36 +9,44 @@ function GetImageScans($src, &$info) {
     $original = "$dir/$hash.original.jpg";
     $progressive = "$dir/$hash.jpg";
     $baseline = "$dir/$hash-baseline.jpg";
-    if (!is_file($progressive)) {
+    if (!is_file($original)) {
         file_put_contents($original, file_get_contents($src));
-        if (is_file($original)) {
-            $cmd = 'jpegtran -progressive -optimize -copy none ' . escapeshellarg($original) . ' > ' . escapeshellarg($progressive);
-            exec($cmd, $result);
-            unlink($original);
-        }
     }
-    if (is_file($progressive)) {
-        if (!is_file($baseline)) {
-            $cmd = 'jpegtran -optimize -copy none ' . escapeshellarg($progressive) . ' > ' . escapeshellarg($baseline);
-            exec($cmd, $result);
-        }
-        $size = getimagesize($progressive);
+    if (is_file($original)) {
+        $size = getimagesize($original);
+        $info['original'] = $original;
+        $info['originalSize'] = filesize($original);
         $info['width'] = $size[0];
         $info['height'] = $size[1];
-        $info['baseline'] = $baseline;
-        $file = fopen($progressive, 'rb');
-        if ($file) {
-            $bytes = fread($file, filesize($progressive));
-            // process the jpeg markers
-            $i = 0;
-            $scan_start = 0;
-            $size = strlen($bytes);
-            while (FindNextScan($bytes, $size, $i)) {
-                $scan_length = $i - $scan_start;
-                $scans[] = substr($bytes, $scan_start, $scan_length);
-                $scan_start = $i;
+        if (!is_file($baseline)) {
+            $cmd = 'jpegtran -optimize -copy none ' . escapeshellarg($original) . ' > ' . escapeshellarg($baseline);
+            exec($cmd, $result);
+        }
+        if (is_file($baseline)) {
+            $info['baseline'] = $baseline;
+            $info['baselineSize'] = filesize($baseline);
+        }
+        if (!is_file($progressive)) {
+            $cmd = 'jpegtran -progressive -optimize -copy none ' . escapeshellarg($original) . ' > ' . escapeshellarg($progressive);
+            exec($cmd, $result);
+        }
+        if (is_file($progressive)) {
+            $info['progressive'] = $progressive;
+            $info['progressiveSize'] = filesize($progressive);
+            $file = fopen($progressive, 'rb');
+            if ($file) {
+                $bytes = fread($file, $info['progressiveSize']);
+                // process the jpeg markers
+                $i = 0;
+                $scan_start = 0;
+                $size = strlen($bytes);
+                while (FindNextScan($bytes, $size, $i)) {
+                    $scan_length = $i - $scan_start;
+                    $scans[] = substr($bytes, $scan_start, $scan_length);
+                    $scan_start = $i;
+                }
+                fclose($file);
             }
-            fclose($file);
         }
     }
     return $scans;

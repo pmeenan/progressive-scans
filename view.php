@@ -4,8 +4,10 @@ $url = htmlspecialchars($_REQUEST['img']);
 $scans = GetImageScans($url, $info);
 $width = $info['width'];
 $height = $info['height'];
-$baseline = $info['baseline'];
 $divWidth = $width * 2;
+$compare = 'baseline';
+if (array_key_exists('compare', $_REQUEST) && $_REQUEST['compare'] == 'original')
+    $compare = 'original';
 ?>
 <!DOCTYPE html>
 <html>
@@ -34,6 +36,16 @@ if (isset($scans) && is_array($scans)) {
     echo "<h1>Progressive Jpeg Demonstration</h1>";
     echo "Original Image: <a href=\"$url\">$url</a><br>";
     echo "<a href=\"index.html\">New Comparison</a> - You can view any web-accessible jpeg image as a progressive comparison.";
+    if (array_key_exists('originalSize', $info) && array_key_exists('progressiveSize', $info) && array_key_exists('baselineSize', $info)) {
+        echo "<br><br><form id=\"compare\" name=\"compare\" method=\"get\" action=\"view.php\">";
+        echo '<input type="hidden" name="img" value="' . $_REQUEST['img'] . '">';
+        echo "Compare optimized progressive jpeg (" . number_format($info['progressiveSize'], 0) . " bytes) to:<br>\n";
+        $selected = $compare == 'baseline' ? ' checked' : '';
+        echo '<input type="radio" name="compare" value="baseline" onclick="this.form.submit();"' . $selected . '>Optimized baseline jpeg (' . number_format($info['baselineSize'], 0) . " bytes)<br>\n";
+        $selected = $compare == 'original' ? ' checked' : '';
+        echo '<input type="radio" name="compare" value="original" onclick="this.form.submit();"' . $selected . '>Original image (' . number_format($info['originalSize'], 0) . " bytes)<br>\n";
+        echo "</form>";
+    }
     echo "<h2>Interactive View:</h2>";
     echo "<p>The image on the left (or above) is the progressive image and the one on the right is top-down baseline.<br>";
     echo "Move the slider to see the progression of the scans.<br>";
@@ -64,19 +76,22 @@ if (isset($scans) && is_array($scans)) {
 
 function DisplayImage(&$scans, $count) {
     global $width;
-    global $baseline;
+    global $info;
+    global $compare;
     $out = '';
     for ($i = 0; $i < $count; $i++)
         $out .= $scans[$i];
     $bytes = strlen($out);
-    echo "$count scans - $bytes bytes<br>";
-    echo '<img class="jpeg" src="data:image/jpeg;base64,';
+    $percent = number_format(($bytes / $info['progressiveSize']) * 100, 0);
+    $bytesStr = number_format($bytes, 0);
+    echo "$count scans - $bytesStr bytes ($percent%)";
+    echo '<br><img class="jpeg" src="data:image/jpeg;base64,';
     echo base64_encode($out);
     echo '">';
-    if (is_file($baseline)) {
+    if (is_file($info[$compare])) {
         if ($count >= count($scans) - 1)
-            $bytes = filesize($baseline);
-        $file = fopen($baseline, 'rb');
+            $bytes = $info["{$compare}Size"];
+        $file = fopen($info[$compare], 'rb');
         if ($file) {
             echo '<img class="jpeg" src="data:image/jpeg;base64,';
             echo base64_encode(fread($file, $bytes));
