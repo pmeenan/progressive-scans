@@ -19,7 +19,7 @@ function GetImageScans($src, &$info) {
         $info['width'] = $size[0];
         $info['height'] = $size[1];
         if (!is_file($baseline)) {
-            $cmd = 'jpegtran -optimize -copy none ' . escapeshellarg($original) . ' > ' . escapeshellarg($baseline);
+            $cmd = 'jpegtran -optimize -copy none -outfile ' . escapeshellarg($baseline) . ' ' . escapeshellarg($original);
             exec($cmd, $result);
         }
         if (is_file($baseline)) {
@@ -27,7 +27,7 @@ function GetImageScans($src, &$info) {
             $info['baselineSize'] = filesize($baseline);
         }
         if (!is_file($progressive)) {
-            $cmd = 'jpegtran -progressive -optimize -copy none ' . escapeshellarg($original) . ' > ' . escapeshellarg($progressive);
+            $cmd = 'jpegtran -progressive -optimize -copy none -outfile ' . escapeshellarg($progressive) . ' ' . escapeshellarg($original);
             exec($cmd, $result);
         }
         if (is_file($progressive)) {
